@@ -7,20 +7,20 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
 }
 
 .container {
     width: 100%;
-    max-width: 1200px;
+    max-width: 1000px;
     margin: 20px;
     text-align: center;
 }
 
 .shop-title {
-    font-size: 2.5rem;
+    font-size: 3rem; /* Увеличенный размер шрифта */
     color: #424242;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     animation: fadeInDown 1s ease-in-out;
 }
 
@@ -34,8 +34,8 @@ body {
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 30%;
-    margin: 10px;
+    width: 100%; /* Сделаем блоки на всю ширину для мобильных устройств */
+    margin: 10px 0;
     padding: 20px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     animation: fadeInUp 0.5s ease-in-out;
@@ -47,7 +47,7 @@ body {
 }
 
 .product p {
-    font-size: 1.2rem;
+    font-size: 1.5rem; /* Увеличенный размер шрифта */
     color: #757575;
     margin: 15px 0;
 }
@@ -56,11 +56,11 @@ body {
     background-color: #4285F4;
     color: white;
     border: none;
-    padding: 10px 20px;
+    padding: 15px 25px; /* Увеличенный padding для больших кнопок */
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    font-size: 1rem;
+    font-size: 1.5rem; /* Увеличенный размер шрифта */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
@@ -75,8 +75,8 @@ body {
 
 .order-button {
     margin-top: 30px;
-    padding: 15px 30px;
-    font-size: 1.5rem;
+    padding: 20px 40px; /* Увеличенный padding для больших кнопок */
+    font-size: 2rem; /* Увеличенный размер шрифта */
     background-color: #0F9D58;
     color: white;
     border: none;
@@ -114,23 +114,14 @@ body {
 }
 
 /* Адаптивные стили */
-@media (max-width: 768px) {
+@media (min-width: 769px) {
     .product {
-        width: 45%;
+        width: 45%; /* Два продукта в ряд для больших экранов */
     }
 }
 
-@media (max-width: 480px) {
+@media (min-width: 1024px) {
     .product {
-        width: 100%;
-    }
-
-    .shop-title {
-        font-size: 2rem;
-    }
-
-    .order-button {
-        font-size: 1.2rem;
-        padding: 10px 20px;
+        width: 30%; /* Три продукта в ряд для больших экранов */
     }
 }
