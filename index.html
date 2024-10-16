@@ -307,36 +307,15 @@
                 return;
             }
 
-            // Отправляем данные на n8n через вебхук
-            fetch('https://n8n.chatforma.com/webhook/webhookgameover', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    chat_id: chat_id,
-                    cart: cart,
-                }),
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Сетевая ошибка');
-                }
-                return response.json();
-            })
-            .then(data => {
-                showNotification('Счет отправлен в Telegram. Пожалуйста, проверьте ваш чат.');
-                // Очищаем корзину после отправки счета
-                cart = [];
-                updateCart();
+            // Отправляем данные в бот через tg.sendData
+            tg.sendData(JSON.stringify(cart));
 
-                // Закрываем приложение
-                tg.close();
-            })
-            .catch((error) => {
-                console.error('Ошибка:', error);
-                showNotification('Произошла ошибка при отправке счета.');
-            });
+            // Очищаем корзину после отправки заказа
+            cart = [];
+            updateCart();
+
+            // Закрываем приложение
+            tg.close();
         });
 
         // Отображаем категории при загрузке страницы
