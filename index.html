@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mini App</title>
     <style>
         /* Стили общие */
@@ -88,9 +89,21 @@
             background-color: #292929;
             border-radius: 10px;
             overflow: hidden;
-            width: 180px;
+            width: calc(50% - 20px); /* Адаптивная ширина */
             transition: transform 0.3s ease;
             cursor: pointer;
+        }
+
+        @media (min-width: 600px) {
+            .item {
+                width: calc(33.333% - 20px);
+            }
+        }
+
+        @media (min-width: 900px) {
+            .item {
+                width: calc(25% - 20px);
+            }
         }
 
         .item img {
@@ -116,12 +129,6 @@
         .item-name {
             font-size: 18px;
             margin: 10px 0;
-        }
-
-        .item-price {
-            color: #ff9800;
-            font-size: 16px;
-            margin: 5px 0;
         }
 
         /* Модальное окно */
@@ -153,6 +160,7 @@
             width: 90%;
             max-width: 500px;
             animation: slideDown 0.3s ease;
+            position: relative;
         }
 
         @keyframes slideDown {
@@ -207,7 +215,7 @@
             margin-top: 10px;
         }
 
-        /* Стили для скрытия полосы прокрутки */
+        /* Скрытие полосы прокрутки */
         .catalog::-webkit-scrollbar {
             display: none;
         }
@@ -215,6 +223,17 @@
         .catalog {
             -ms-overflow-style: none;
             scrollbar-width: none;
+        }
+
+        /* Анимация фейерверка */
+        .fireworks {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 3;
         }
     </style>
 </head>
@@ -267,6 +286,8 @@
         </div>
     </div>
 
+    <canvas class="fireworks" id="fireworksCanvas"></canvas>
+
     <script>
         // Данные категорий
         const categories = [
@@ -294,13 +315,20 @@
         ];
 
         // Данные товаров (по 4 товара в каждой категории)
-        const products = [
-            { category: "ЗИП-ХУДИ", name: "Товар 1", price: "5 500 ₽", image: "https://via.placeholder.com/180x180" },
-            { category: "ЗИП-ХУДИ", name: "Товар 2", price: "5 900 ₽", image: "https://via.placeholder.com/180x180" },
-            { category: "ЗИП-ХУДИ", name: "Товар 3", price: "4 200 ₽", image: "https://via.placeholder.com/180x180" },
-            { category: "ЗИП-ХУДИ", name: "Товар 4", price: "6 000 ₽", image: "https://via.placeholder.com/180x180" },
-            // Добавьте товары для остальных категорий
-        ];
+        const products = [];
+
+        // Генерация товаров для каждой категории
+        categories.forEach(category => {
+            if (category !== "Все товары") {
+                for (let i = 1; i <= 4; i++) {
+                    products.push({
+                        category: category,
+                        name: `${category} Товар ${i}`,
+                        image: "https://via.placeholder.com/180x180"
+                    });
+                }
+            }
+        });
 
         // Состояние приложения
         let currentCategory = "Все товары";
@@ -374,7 +402,6 @@
                     <img src="${product.image}" alt="${product.name}">
                     <div class="item-info">
                         <div class="item-name">${product.name}</div>
-                        <div class="item-price">${product.price}</div>
                     </div>
                 `;
                 item.addEventListener('click', () => {
@@ -400,17 +427,117 @@
             categoriesMenu.classList.toggle('open');
         });
 
+        // Анимация фейерверка
+        function showFireworks() {
+            const canvas = document.getElementById('fireworksCanvas');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            let rockets = [];
+            const maxRockets = 5;
+            const maxParticles = 500;
+
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            function launchRocket() {
+                if (rockets.length < maxRockets) {
+                    const rocket = {
+                        x: Math.random() * canvas.width * 0.6 + canvas.width * 0.2,
+                        y: canvas.height,
+                        vx: Math.random() * 6 - 3,
+                        vy: Math.random() * -10 - 15,
+                        color: 'hsl(' + Math.floor(Math.random() * 360) + ',100%,50%)',
+                        explosion: false
+                    };
+                    rockets.push(rocket);
+                }
+            }
+
+            function updateFireworks() {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                for (let i = rockets.length - 1; i >= 0; i--) {
+                    const rocket = rockets[i];
+                    rocket.x += rocket.vx;
+                    rocket.y += rocket.vy;
+                    rocket.vy += 0.1;
+
+                    ctx.beginPath();
+                    ctx.arc(rocket.x, rocket.y, 2, 0, Math.PI * 2);
+                    ctx.fillStyle = rocket.color;
+                    ctx.fill();
+
+                    if (rocket.vy >= 0 && !rocket.explosion) {
+                        rocket.explosion = true;
+                        for (let j = 0; j < 100; j++) {
+                            const particle = {
+                                x: rocket.x,
+                                y: rocket.y,
+                                vx: Math.random() * 5 - 2.5,
+                                vy: Math.random() * 5 - 2.5,
+                                alpha: 1,
+                                color: rocket.color
+                            };
+                            particles.push(particle);
+                        }
+                        rockets.splice(i, 1);
+                    }
+                }
+
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const particle = particles[i];
+                    particle.x += particle.vx;
+                    particle.y += particle.vy;
+                    particle.alpha -= 0.01;
+
+                    if (particle.alpha <= 0) {
+                        particles.splice(i, 1);
+                        continue;
+                    }
+
+                    ctx.globalAlpha = particle.alpha;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, 2, 0, Math.PI * 2);
+                    ctx.fillStyle = particle.color;
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                }
+
+                if (particles.length > maxParticles) {
+                    particles.splice(0, particles.length - maxParticles);
+                }
+            }
+
+            let fireworksInterval = setInterval(() => {
+                launchRocket();
+                updateFireworks();
+            }, 1000 / 60);
+
+            setTimeout(() => {
+                clearInterval(fireworksInterval);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }, 3000); // Фейерверк длится 3 секунды
+        }
+
         // Отправка оценки
         submitRatingButton.addEventListener('click', () => {
             const totalScore = parseInt(designSlider.value) + parseInt(uniquenessSlider.value) + parseInt(relevanceSlider.value) + parseInt(conceptSlider.value) + parseInt(implementationSlider.value);
-            alert(`Ваша оценка: ${totalScore}/50`);
             modal.classList.remove('open');
+            showFireworks();
             // Здесь вы можете добавить код для отправки оценки на сервер и обновления общей оценки
         });
 
         // Инициализация приложения
         displayCategories();
         displayProducts();
+
+        // Обработка изменения размера окна для canvas
+        window.addEventListener('resize', () => {
+            const canvas = document.getElementById('fireworksCanvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
     </script>
 </body>
 </html>
