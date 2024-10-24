@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Релиз</title>
     <style>
         /* Стили общие */
@@ -293,34 +294,18 @@
                 <button class="close-modal">&times;</button>
             </div>
             <div class="rating-section" id="rating-section">
-                <div class="criterion">
-                    <label for="design">Дизайн: <span id="design-value">5</span>/10</label>
-                    <input type="range" id="design" min="1" max="10" value="5">
-                </div>
-                <div class="criterion">
-                    <label for="uniqueness">Уникальность: <span id="uniqueness-value">5</span>/10</label>
-                    <input type="range" id="uniqueness" min="1" max="10" value="5">
-                </div>
-                <div class="criterion">
-                    <label for="relevance">Актуальность: <span id="relevance-value">5</span>/10</label>
-                    <input type="range" id="relevance" min="1" max="10" value="5">
-                </div>
-                <div class="criterion">
-                    <label for="concept">Концепция: <span id="concept-value">5</span>/10</label>
-                    <input type="range" id="concept" min="1" max="10" value="5">
-                </div>
-                <div class="criterion">
-                    <label for="implementation">Реализация: <span id="implementation-value">5</span>/10</label>
-                    <input type="range" id="implementation" min="1" max="10" value="5">
-                </div>
-                <button class="submit-rating">Оценить</button>
+                <!-- Секция рейтинга будет динамически обновляться -->
             </div>
         </div>
     </div>
 
     <canvas class="fireworks" id="fireworksCanvas"></canvas>
 
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
+        // Инициализация Telegram Web App
+        const tg = window.Telegram.WebApp;
+
         // Данные категорий
         const categories = [
             "Все товары",
@@ -360,7 +345,7 @@
                         image: "https://via.placeholder.com/180x180",
                         totalScore: 0,
                         voteCount: 0,
-                        userHasVoted: false // Флаг для отслеживания, голосовал ли пользователь за этот товар
+                        userRated: false
                     });
                 }
             }
@@ -378,42 +363,8 @@
         const modal = document.getElementById('modal');
         const closeModalButton = document.querySelector('.close-modal');
         const productName = document.getElementById('product-name');
-        const submitRatingButton = document.querySelector('.submit-rating');
         const ratingSection = document.getElementById('rating-section');
         const modalContent = document.getElementById('modal-content');
-
-        // Обработчики событий для слайдеров
-        const designSlider = document.getElementById('design');
-        const uniquenessSlider = document.getElementById('uniqueness');
-        const relevanceSlider = document.getElementById('relevance');
-        const conceptSlider = document.getElementById('concept');
-        const implementationSlider = document.getElementById('implementation');
-
-        const designValue = document.getElementById('design-value');
-        const uniquenessValue = document.getElementById('uniqueness-value');
-        const relevanceValue = document.getElementById('relevance-value');
-        const conceptValue = document.getElementById('concept-value');
-        const implementationValue = document.getElementById('implementation-value');
-
-        designSlider.addEventListener('input', () => {
-            designValue.textContent = designSlider.value;
-        });
-
-        uniquenessSlider.addEventListener('input', () => {
-            uniquenessValue.textContent = uniquenessSlider.value;
-        });
-
-        relevanceSlider.addEventListener('input', () => {
-            relevanceValue.textContent = relevanceSlider.value;
-        });
-
-        conceptSlider.addEventListener('input', () => {
-            conceptValue.textContent = conceptSlider.value;
-        });
-
-        implementationSlider.addEventListener('input', () => {
-            implementationValue.textContent = implementationSlider.value;
-        });
 
         // Функция для отображения категорий
         function displayCategories() {
@@ -454,43 +405,52 @@
         function openModal(product) {
             currentProduct = product;
             productName.textContent = product.name;
-            if (product.voteCount > 0 && product.userHasVoted) {
-                // Если пользователь уже голосовал за этот товар, показываем общую оценку
+
+            if (product.userRated) {
                 showOverallRating();
             } else {
-                // Если пользователь не голосовал, показываем ползунки
-                ratingSection.innerHTML = `
-                    <div class="criterion">
-                        <label for="design">Дизайн: <span id="design-value">5</span>/10</label>
-                        <input type="range" id="design" min="1" max="10" value="5">
-                    </div>
-                    <div class="criterion">
-                        <label for="uniqueness">Уникальность: <span id="uniqueness-value">5</span>/10</label>
-                        <input type="range" id="uniqueness" min="1" max="10" value="5">
-                    </div>
-                    <div class="criterion">
-                        <label for="relevance">Актуальность: <span id="relevance-value">5</span>/10</label>
-                        <input type="range" id="relevance" min="1" max="10" value="5">
-                    </div>
-                    <div class="criterion">
-                        <label for="concept">Концепция: <span id="concept-value">5</span>/10</label>
-                        <input type="range" id="concept" min="1" max="10" value="5">
-                    </div>
-                    <div class="criterion">
-                        <label for="implementation">Реализация: <span id="implementation-value">5</span>/10</label>
-                        <input type="range" id="implementation" min="1" max="10" value="5">
-                    </div>
-                    <button class="submit-rating">Оценить</button>
-                `;
-                // Обновляем ссылки на элементы после обновления innerHTML
-                setupRatingControls();
+                displayRatingForm();
             }
             modal.classList.add('open');
         }
 
-        // Функция для настройки контролов оценки после обновления DOM
-        function setupRatingControls() {
-            // Повторно получаем элементы после перерисовки
+        // Закрытие модального окна
+        closeModalButton.addEventListener('click', () => {
+            modal.classList.remove('open');
+        });
+
+        // Открытие/закрытие меню категорий
+        categoriesButton.addEventListener('click', () => {
+            categoriesMenu.classList.toggle('open');
+        });
+
+        // Показать форму оценки
+        function displayRatingForm() {
+            ratingSection.innerHTML = `
+                <div class="criterion">
+                    <label for="design">Дизайн: <span id="design-value">5</span>/10</label>
+                    <input type="range" id="design" min="1" max="10" value="5">
+                </div>
+                <div class="criterion">
+                    <label for="uniqueness">Уникальность: <span id="uniqueness-value">5</span>/10</label>
+                    <input type="range" id="uniqueness" min="1" max="10" value="5">
+                </div>
+                <div class="criterion">
+                    <label for="relevance">Актуальность: <span id="relevance-value">5</span>/10</label>
+                    <input type="range" id="relevance" min="1" max="10" value="5">
+                </div>
+                <div class="criterion">
+                    <label for="concept">Концепция: <span id="concept-value">5</span>/10</label>
+                    <input type="range" id="concept" min="1" max="10" value="5">
+                </div>
+                <div class="criterion">
+                    <label for="implementation">Реализация: <span id="implementation-value">5</span>/10</label>
+                    <input type="range" id="implementation" min="1" max="10" value="5">
+                </div>
+                <button class="submit-rating">Оценить</button>
+            `;
+
+            // Обработчики событий для слайдеров
             const designSlider = document.getElementById('design');
             const uniquenessSlider = document.getElementById('uniqueness');
             const relevanceSlider = document.getElementById('relevance');
@@ -523,21 +483,30 @@
                 implementationValue.textContent = implementationSlider.value;
             });
 
-            // Обработчик кнопки оценки
-            const submitRatingButton = document.querySelector('.submit-rating');
-            submitRatingButton.addEventListener('click', submitRating);
+            document.querySelector('.submit-rating').addEventListener('click', submitRating);
         }
 
-        // Закрытие модального окна
-        closeModalButton.addEventListener('click', () => {
-            modal.classList.remove('open');
-            resetSliders();
-        });
+        // Отправка оценки
+        function submitRating() {
+            const designSlider = document.getElementById('design');
+            const uniquenessSlider = document.getElementById('uniqueness');
+            const relevanceSlider = document.getElementById('relevance');
+            const conceptSlider = document.getElementById('concept');
+            const implementationSlider = document.getElementById('implementation');
 
-        // Открытие/закрытие меню категорий
-        categoriesButton.addEventListener('click', () => {
-            categoriesMenu.classList.toggle('open');
-        });
+            const totalScore = parseInt(designSlider.value) + parseInt(uniquenessSlider.value) + parseInt(relevanceSlider.value) + parseInt(conceptSlider.value) + parseInt(implementationSlider.value);
+            currentProduct.totalScore += totalScore;
+            currentProduct.voteCount += 1;
+            currentProduct.userRated = true;
+            showOverallRating();
+            showFireworks();
+        }
+
+        // Показать общую оценку
+        function showOverallRating() {
+            const averageScore = Math.round(currentProduct.totalScore / currentProduct.voteCount);
+            ratingSection.innerHTML = `<h3>Общая оценка: ${averageScore}/50</h3>`;
+        }
 
         // Анимация фейерверка
         function showFireworks() {
@@ -632,48 +601,6 @@
             }, 3000);
         }
 
-        // Отправка оценки
-        function submitRating() {
-            const designScore = parseInt(document.getElementById('design').value);
-            const uniquenessScore = parseInt(document.getElementById('uniqueness').value);
-            const relevanceScore = parseInt(document.getElementById('relevance').value);
-            const conceptScore = parseInt(document.getElementById('concept').value);
-            const implementationScore = parseInt(document.getElementById('implementation').value);
-
-            const totalScore = designScore + uniquenessScore + relevanceScore + conceptScore + implementationScore;
-
-            currentProduct.totalScore += totalScore;
-            currentProduct.voteCount += 1;
-            currentProduct.userHasVoted = true;
-
-            ratingSection.style.display = 'none';
-            showOverallRating();
-            showFireworks();
-            resetSliders();
-        }
-
-        // Показать общую оценку
-        function showOverallRating() {
-            const averageScore = Math.round(currentProduct.totalScore / currentProduct.voteCount);
-            ratingSection.innerHTML = `<h3>Общая оценка: ${averageScore}/50</h3>`;
-            ratingSection.style.display = 'block';
-        }
-
-        // Сброс слайдеров
-        function resetSliders() {
-            designSlider.value = 5;
-            uniquenessSlider.value = 5;
-            relevanceSlider.value = 5;
-            conceptSlider.value = 5;
-            implementationSlider.value = 5;
-
-            designValue.textContent = '5';
-            uniquenessValue.textContent = '5';
-            relevanceValue.textContent = '5';
-            conceptValue.textContent = '5';
-            implementationValue.textContent = '5';
-        }
-
         // Инициализация приложения
         displayCategories();
         displayProducts();
@@ -685,9 +612,8 @@
             canvas.height = window.innerHeight;
         });
 
-        // Рекомендация: В реальном приложении данные о товарах и рейтингах следует хранить на сервере или в базе данных.
-        // Текущее решение хранит данные в памяти и они будут потеряны при перезагрузке страницы.
-        // Также необходимо добавить идентификацию пользователя, чтобы предотвратить повторное голосование за один и тот же товар.
+        // Обработка открытия через Telegram Web App
+        tg.expand();
     </script>
 </body>
 </html>
