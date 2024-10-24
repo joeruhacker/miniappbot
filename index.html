@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini App</title>
+    <title>Релиз</title>
     <style>
         /* Стили общие */
         body {
@@ -31,6 +31,9 @@
 
         .header .title {
             flex-grow: 1;
+            font-family: 'Arial Black', sans-serif;
+            font-size: 28px;
+            text-align: center;
         }
 
         .header .categories-button {
@@ -89,7 +92,7 @@
             background-color: #292929;
             border-radius: 10px;
             overflow: hidden;
-            width: calc(50% - 20px); /* Адаптивная ширина */
+            width: calc(50% - 20px);
             transition: transform 0.3s ease;
             cursor: pointer;
         }
@@ -201,6 +204,36 @@
 
         .criterion input[type="range"] {
             width: 100%;
+            -webkit-appearance: none;
+            background: transparent;
+        }
+
+        .criterion input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            background: black;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-top: -8px;
+        }
+
+        .criterion input[type="range"]::-webkit-slider-runnable-track {
+            height: 4px;
+            background: purple;
+        }
+
+        .criterion input[type="range"]::-moz-range-thumb {
+            height: 20px;
+            width: 20px;
+            background: black;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .criterion input[type="range"]::-moz-range-track {
+            height: 4px;
+            background: purple;
         }
 
         .submit-rating {
@@ -240,7 +273,7 @@
 <body>
     <div class="header">
         <img src="https://i.pinimg.com/1200x/4e/29/db/4e29dbb86359abce300ab9d33083043f.jpg" alt="Logo">
-        <div class="title">Каталог товаров</div>
+        <div class="title">Релиз</div>
         <button class="categories-button">Категории</button>
     </div>
 
@@ -255,12 +288,12 @@
     </div>
 
     <div class="modal" id="modal">
-        <div class="modal-content">
+        <div class="modal-content" id="modal-content">
             <div class="modal-header">
                 <h2 id="product-name">Название товара</h2>
                 <button class="close-modal">&times;</button>
             </div>
-            <div class="rating-section">
+            <div class="rating-section" id="rating-section">
                 <div class="criterion">
                     <label for="design">Дизайн: <span id="design-value">5</span>/10</label>
                     <input type="range" id="design" min="1" max="10" value="5">
@@ -322,9 +355,12 @@
             if (category !== "Все товары") {
                 for (let i = 1; i <= 4; i++) {
                     products.push({
+                        id: `${category}_${i}`,
                         category: category,
                         name: `${category} Товар ${i}`,
-                        image: "https://via.placeholder.com/180x180"
+                        image: "https://via.placeholder.com/180x180",
+                        totalScore: 0,
+                        voteCount: 0
                     });
                 }
             }
@@ -332,6 +368,7 @@
 
         // Состояние приложения
         let currentCategory = "Все товары";
+        let currentProduct = null;
 
         // Элементы DOM
         const catalog = document.getElementById('catalog');
@@ -342,6 +379,8 @@
         const closeModalButton = document.querySelector('.close-modal');
         const productName = document.getElementById('product-name');
         const submitRatingButton = document.querySelector('.submit-rating');
+        const ratingSection = document.getElementById('rating-section');
+        const modalContent = document.getElementById('modal-content');
 
         // Обработчики событий для слайдеров
         const designSlider = document.getElementById('design');
@@ -413,13 +452,20 @@
 
         // Открытие модального окна
         function openModal(product) {
+            currentProduct = product;
             productName.textContent = product.name;
+            if (product.voteCount > 0) {
+                showOverallRating();
+            } else {
+                ratingSection.style.display = 'block';
+            }
             modal.classList.add('open');
         }
 
         // Закрытие модального окна
         closeModalButton.addEventListener('click', () => {
             modal.classList.remove('open');
+            resetSliders();
         });
 
         // Открытие/закрытие меню категорий
@@ -517,16 +563,82 @@
             setTimeout(() => {
                 clearInterval(fireworksInterval);
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-            }, 3000); // Фейерверк длится 3 секунды
+            }, 3000);
         }
 
         // Отправка оценки
         submitRatingButton.addEventListener('click', () => {
             const totalScore = parseInt(designSlider.value) + parseInt(uniquenessSlider.value) + parseInt(relevanceSlider.value) + parseInt(conceptSlider.value) + parseInt(implementationSlider.value);
-            modal.classList.remove('open');
+            currentProduct.totalScore += totalScore;
+            currentProduct.voteCount += 1;
+            ratingSection.style.display = 'none';
+            showOverallRating();
             showFireworks();
-            // Здесь вы можете добавить код для отправки оценки на сервер и обновления общей оценки
+            resetSliders();
         });
+
+        // Показать общую оценку
+        function showOverallRating() {
+            const averageScore = Math.round(currentProduct.totalScore / currentProduct.voteCount);
+            ratingSection.innerHTML = `<h3>Общая оценка: ${averageScore}/50</h3>`;
+            ratingSection.style.display = 'block';
+        }
+
+        // Сброс слайдеров
+        function resetSliders() {
+            designSlider.value = 5;
+            uniquenessSlider.value = 5;
+            relevanceSlider.value = 5;
+            conceptSlider.value = 5;
+            implementationSlider.value = 5;
+
+            designValue.textContent = '5';
+            uniquenessValue.textContent = '5';
+            relevanceValue.textContent = '5';
+            conceptValue.textContent = '5';
+            implementationValue.textContent = '5';
+
+            ratingSection.innerHTML = `
+                <div class="criterion">
+                    <label for="design">Дизайн: <span id="design-value">5</span>/10</label>
+                    <input type="range" id="design" min="1" max="10" value="5">
+                </div>
+                <div class="criterion">
+                    <label for="uniqueness">Уникальность: <span id="uniqueness-value">5</span>/10</label>
+                    <input type="range" id="uniqueness" min="1" max="10" value="5">
+                </div>
+                <div class="criterion">
+                    <label for="relevance">Актуальность: <span id="relevance-value">5</span>/10</label>
+                    <input type="range" id="relevance" min="1" max="10" value="5">
+                </div>
+                <div class="criterion">
+                    <label for="concept">Концепция: <span id="concept-value">5</span>/10</label>
+                    <input type="range" id="concept" min="1" max="10" value="5">
+                </div>
+                <div class="criterion">
+                    <label for="implementation">Реализация: <span id="implementation-value">5</span>/10</label>
+                    <input type="range" id="implementation" min="1" max="10" value="5">
+                </div>
+                <button class="submit-rating">Оценить</button>
+            `;
+            // Повторно привязываем обработчики событий
+            document.querySelector('.submit-rating').addEventListener('click', submitRatingButton.click);
+            document.getElementById('design').addEventListener('input', () => {
+                document.getElementById('design-value').textContent = document.getElementById('design').value;
+            });
+            document.getElementById('uniqueness').addEventListener('input', () => {
+                document.getElementById('uniqueness-value').textContent = document.getElementById('uniqueness').value;
+            });
+            document.getElementById('relevance').addEventListener('input', () => {
+                document.getElementById('relevance-value').textContent = document.getElementById('relevance').value;
+            });
+            document.getElementById('concept').addEventListener('input', () => {
+                document.getElementById('concept-value').textContent = document.getElementById('concept').value;
+            });
+            document.getElementById('implementation').addEventListener('input', () => {
+                document.getElementById('implementation-value').textContent = document.getElementById('implementation').value;
+            });
+        }
 
         // Инициализация приложения
         displayCategories();
