@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Релиз</title>
+    <title>Товары</title>
     <style>
         /* Стили общие */
         body {
@@ -20,108 +20,49 @@
             align-items: center;
             background-color: #121212;
             padding: 10px;
-            font-size: 24px;
             position: relative;
+            justify-content: center;
         }
 
         .header img {
-            height: 40px;
-            margin-right: 10px;
-        }
-
-        .header .title {
-            flex-grow: 1;
-            font-family: 'Arial Black', sans-serif;
-            font-size: 28px;
-            text-align: center;
-        }
-
-        .header .categories-button {
-            background: none;
-            border: none;
-            color: #0078d4;
-            font-size: 18px;
-            cursor: pointer;
-        }
-
-        /* Категории */
-        .categories-menu {
-            position: absolute;
-            top: 60px;
-            left: 0;
-            right: 0;
-            background-color: #121212;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-            z-index: 1;
-        }
-
-        .categories-menu.open {
-            max-height: 300px;
-        }
-
-        .categories-menu ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .categories-menu li {
-            padding: 10px;
-            border-bottom: 1px solid #292929;
-            cursor: pointer;
-        }
-
-        .categories-menu li:hover {
-            background-color: #292929;
+            height: 60px; /* Размер логотипа */
         }
 
         /* Каталог */
         .catalog {
             display: flex;
             flex-wrap: wrap;
-            padding: 20px;
+            padding: 10px;
             justify-content: center;
-            gap: 20px;
+            gap: 10px;
             overflow-y: auto;
-            height: calc(100vh - 60px);
+            height: calc(100vh - 80px); /* Учитываем высоту шапки */
+            box-sizing: border-box;
         }
 
         .item {
             background-color: #292929;
             border-radius: 10px;
             overflow: hidden;
-            width: calc(50% - 20px);
+            width: calc(50% - 10px); /* Два товара в ряду */
             transition: transform 0.3s ease;
             cursor: pointer;
-        }
-
-        @media (min-width: 600px) {
-            .item {
-                width: calc(33.333% - 20px);
-            }
-        }
-
-        @media (min-width: 900px) {
-            .item {
-                width: calc(25% - 20px);
-            }
+            box-sizing: border-box;
         }
 
         .item img {
             width: 100%;
-            height: 180px;
+            height: 200px;
             object-fit: cover;
             transition: transform 0.3s ease;
         }
 
         .item:hover img {
-            transform: scale(1.1);
+            transform: scale(1.05);
         }
 
         .item:hover {
-            transform: translateY(-10px);
+            transform: translateY(-5px);
         }
 
         .item-info {
@@ -130,8 +71,14 @@
         }
 
         .item-name {
-            font-size: 18px;
-            margin: 10px 0;
+            font-size: 16px;
+            margin: 5px 0;
+        }
+
+        .item-rating {
+            font-size: 14px;
+            margin: 5px 0;
+            color: #ff9800;
         }
 
         /* Модальное окно */
@@ -164,6 +111,9 @@
             max-width: 500px;
             animation: slideDown 0.3s ease;
             position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-sizing: border-box;
         }
 
         @keyframes slideDown {
@@ -179,6 +129,7 @@
 
         .modal-header h2 {
             margin: 0;
+            font-size: 20px;
         }
 
         .close-modal {
@@ -189,6 +140,22 @@
             cursor: pointer;
         }
 
+        .modal-body {
+            margin-top: 20px;
+        }
+
+        .modal-body img {
+            width: 100%;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .modal-body p {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Рейтинг */
         .rating-section {
             margin-top: 20px;
         }
@@ -249,11 +216,16 @@
         }
 
         /* Скрытие полосы прокрутки */
-        .catalog::-webkit-scrollbar {
+        .catalog::-webkit-scrollbar, .modal-content::-webkit-scrollbar {
             display: none;
         }
 
         .catalog {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .modal-content {
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
@@ -272,15 +244,8 @@
 </head>
 <body>
     <div class="header">
-        <img src="https://i.pinimg.com/1200x/4e/29/db/4e29dbb86359abce300ab9d33083043f.jpg" alt="Logo">
-        <div class="title">Релиз</div>
-        <button class="categories-button">Категории</button>
-    </div>
-
-    <div class="categories-menu">
-        <ul id="categories-list">
-            <!-- Категории будут добавлены через JavaScript -->
-        </ul>
+        <!-- Замените ссылку на логотип на свою, если необходимо -->
+        <img src="https://i.pinimg.com/564x/4e/29/db/4e29dbb86359abce300ab9d33083043f.jpg" alt="Logo">
     </div>
 
     <div class="catalog" id="catalog">
@@ -293,105 +258,89 @@
                 <h2 id="product-name">Название товара</h2>
                 <button class="close-modal">&times;</button>
             </div>
-            <div class="rating-section" id="rating-section">
-                <!-- Секция рейтинга будет динамически обновляться -->
+            <div class="modal-body">
+                <img id="product-image" src="" alt="">
+                <p id="product-description">Описание товара.</p>
+                <div class="rating-section" id="rating-section">
+                    <!-- Секция рейтинга будет динамически обновляться -->
+                </div>
             </div>
         </div>
     </div>
 
     <canvas class="fireworks" id="fireworksCanvas"></canvas>
 
+    <!-- Подключение Telegram Web App -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         // Инициализация Telegram Web App
         const tg = window.Telegram.WebApp;
 
-        // Данные категорий
-        const categories = [
-            "Все товары",
-            "ЗИП-ХУДИ",
-            "ХУДИ",
-            "ШТАНЫ",
-            "ФУТБОЛКИ",
-            "ШОРТЫ",
-            "НОСКИ",
-            "КОСТЮМЫ",
-            "СВИТЕРА",
-            "EXCLUSIVE",
-            "ГОЛОВНЫЕ УБОРЫ",
-            "WOMEN",
-            "АКСЕССУАРЫ",
-            "ШАРФЫ",
-            "ЖИЛЕТЫ",
-            "ДЖЕРСИ",
-            "СВИТШОТЫ",
-            "РУБАШКИ",
-            "ДЖИНСОВКИ",
-            "МАЙКИ",
-            "НИЖНЕЕ БЕЛЬЕ"
+        // Данные товаров (20 товаров с возможностью добавить фото и описание)
+        const products = [
+            {
+                id: "product_1",
+                name: "Канье x Гоша «Вестник трибун»",
+                image: "https://i.pinimg.com/736x/1e/6b/81/1e6b81a1c13a17b6d9cfabb9d84890d6.jpg",
+                description: "Канье x Гоша «Вестник трибун»",
+                totalScore: 0,
+                voteCount: 0,
+                userRated: false
+            },
+            {
+                id: "product_2",
+                name: "Kanye x Гоша «Черные Псы»",
+                image: "https://i.pinimg.com/736x/9c/d9/a4/9cd9a4e0a69e320465e84e02b9524e82.jpg",
+                description: "Kanye x Гоша «Черные Псы»",
+                totalScore: 0,
+                voteCount: 0,
+                userRated: false
+            },
+            {
+                id: "product_2",
+                name: "YUMMS BY MARK RODOVSKY FALL 2024",
+                image: "https://i.pinimg.com/736x/38/df/c0/38dfc0a32af639c78fc597ef84256803.jpg",
+                description: "YUMMS BY MARK RODOVSKY FALL 2024",
+                totalScore: 0,
+                voteCount: 0,
+                userRated: false
+            },
+            {
+                id: "product_20",
+                name: "Kanye x Гоша «Vultures»",
+                image: "https://i.pinimg.com/736x/a5/74/bd/a574bd9f36c78523aa4916bf6a61f445.jpg",
+                description: "Kanye x Гоша «Vultures»",
+                totalScore: 0,
+                voteCount: 0,
+                userRated: false
+            }
         ];
 
-        // Данные товаров (по 4 товара в каждой категории)
-        const products = [];
-
-        // Генерация товаров для каждой категории
-        categories.forEach(category => {
-            if (category !== "Все товары") {
-                for (let i = 1; i <= 4; i++) {
-                    products.push({
-                        id: `${category}_${i}`,
-                        category: category,
-                        name: `${category} Товар ${i}`,
-                        image: "https://via.placeholder.com/180x180",
-                        totalScore: 0,
-                        voteCount: 0,
-                        userRated: false
-                    });
-                }
-            }
-        });
-
         // Состояние приложения
-        let currentCategory = "Все товары";
         let currentProduct = null;
 
         // Элементы DOM
         const catalog = document.getElementById('catalog');
-        const categoriesButton = document.querySelector('.categories-button');
-        const categoriesMenu = document.querySelector('.categories-menu');
-        const categoriesList = document.getElementById('categories-list');
         const modal = document.getElementById('modal');
         const closeModalButton = document.querySelector('.close-modal');
         const productName = document.getElementById('product-name');
+        const productImage = document.getElementById('product-image');
+        const productDescription = document.getElementById('product-description');
         const ratingSection = document.getElementById('rating-section');
-        const modalContent = document.getElementById('modal-content');
 
-        // Функция для отображения категорий
-        function displayCategories() {
-            categoriesList.innerHTML = '';
-            categories.forEach(category => {
-                const li = document.createElement('li');
-                li.textContent = category;
-                li.addEventListener('click', () => {
-                    currentCategory = category;
-                    categoriesMenu.classList.remove('open');
-                    displayProducts();
-                });
-                categoriesList.appendChild(li);
-            });
-        }
-
-        // Функция для отображения товаров
+        /**
+         * Функция для отображения товаров в каталоге
+         */
         function displayProducts() {
             catalog.innerHTML = '';
-            const filteredProducts = currentCategory === "Все товары" ? products : products.filter(p => p.category === currentCategory);
-            filteredProducts.forEach(product => {
+            products.forEach(product => {
                 const item = document.createElement('div');
                 item.className = 'item';
                 item.innerHTML = `
                     <img src="${product.image}" alt="${product.name}">
                     <div class="item-info">
                         <div class="item-name">${product.name}</div>
+                        <div class="item-rating">Оценка: ${product.voteCount > 0 ? Math.round(product.totalScore / product.voteCount) : '—'}/50</div>
                     </div>
                 `;
                 item.addEventListener('click', () => {
@@ -401,11 +350,15 @@
             });
         }
 
-        // Открытие модального окна
+        /**
+         * Функция для открытия модального окна с деталями товара
+         * @param {Object} product - Объект товара
+         */
         function openModal(product) {
             currentProduct = product;
             productName.textContent = product.name;
-
+            productImage.src = product.image;
+            productDescription.textContent = product.description;
             if (product.userRated) {
                 showOverallRating();
             } else {
@@ -414,17 +367,16 @@
             modal.classList.add('open');
         }
 
-        // Закрытие модального окна
+        /**
+         * Функция для закрытия модального окна
+         */
         closeModalButton.addEventListener('click', () => {
             modal.classList.remove('open');
         });
 
-        // Открытие/закрытие меню категорий
-        categoriesButton.addEventListener('click', () => {
-            categoriesMenu.classList.toggle('open');
-        });
-
-        // Показать форму оценки
+        /**
+         * Функция для отображения формы оценки
+         */
         function displayRatingForm() {
             ratingSection.innerHTML = `
                 <div class="criterion">
@@ -486,7 +438,9 @@
             document.querySelector('.submit-rating').addEventListener('click', submitRating);
         }
 
-        // Отправка оценки
+        /**
+         * Функция для обработки отправки оценки
+         */
         function submitRating() {
             const designSlider = document.getElementById('design');
             const uniquenessSlider = document.getElementById('uniqueness');
@@ -498,17 +452,36 @@
             currentProduct.totalScore += totalScore;
             currentProduct.voteCount += 1;
             currentProduct.userRated = true;
+            updateProductRating(currentProduct.id, totalScore);
             showOverallRating();
             showFireworks();
         }
 
-        // Показать общую оценку
+        /**
+         * Функция для обновления оценки в каталоге
+         * @param {string} productId - ID товара
+         * @param {number} totalScore - Общий балл
+         */
+        function updateProductRating(productId, totalScore) {
+            const productItems = document.querySelectorAll('.item');
+            productItems.forEach(item => {
+                if (item.querySelector('.item-name').textContent === currentProduct.name) {
+                    item.querySelector('.item-rating').textContent = `Оценка: ${Math.round(currentProduct.totalScore / currentProduct.voteCount)}/50`;
+                }
+            });
+        }
+
+        /**
+         * Функция для отображения общей оценки в модальном окне
+         */
         function showOverallRating() {
             const averageScore = Math.round(currentProduct.totalScore / currentProduct.voteCount);
             ratingSection.innerHTML = `<h3>Общая оценка: ${averageScore}/50</h3>`;
         }
 
-        // Анимация фейерверка
+        /**
+         * Функция для отображения анимации фейерверка
+         */
         function showFireworks() {
             const canvas = document.getElementById('fireworksCanvas');
             const ctx = canvas.getContext('2d');
@@ -602,7 +575,6 @@
         }
 
         // Инициализация приложения
-        displayCategories();
         displayProducts();
 
         // Обработка изменения размера окна для canvas
@@ -612,7 +584,7 @@
             canvas.height = window.innerHeight;
         });
 
-        // Обработка открытия через Telegram Web App
+        // Расширение Web App на весь экран
         tg.expand();
     </script>
 </body>
