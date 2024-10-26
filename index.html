@@ -283,7 +283,6 @@
                 name: "Канье x Гоша «Вестник трибун»",
                 image: "https://i.pinimg.com/736x/1e/6b/81/1e6b81a1c13a17b6d9cfabb9d84890d6.jpg",
                 description: "Канье x Гоша «Вестник трибун»",
-                rating: null, // Рейтинг будет назначен позже
                 userRated: false,
                 userRating: null
             },
@@ -292,7 +291,6 @@
                 name: "Kanye x Гоша «Черные Псы»",
                 image: "https://i.pinimg.com/736x/9c/d9/a4/9cd9a4e0a69e320465e84e02b9524e82.jpg",
                 description: "Kanye x Гоша «Черные Псы»",
-                rating: null,
                 userRated: false,
                 userRating: null
             },
@@ -301,7 +299,6 @@
                 name: "YUMMS BY MARK RODOVSKY FALL 2024",
                 image: "https://i.pinimg.com/736x/38/df/c0/38dfc0a32af639c78fc597ef84256803.jpg",
                 description: "YUMMS BY MARK RODOVSKY FALL 2024",
-                rating: null,
                 userRated: false,
                 userRating: null
             },
@@ -310,7 +307,6 @@
                 name: "LA ROUTINE / OCTOBER 02",
                 image: "https://i.pinimg.com/736x/c3/7b/1c/c37b1cfd9b8d0bdc8728a46132630009.jpg",
                 description: "LA ROUTINE / OCTOBER 02",
-                rating: null,
                 userRated: false,
                 userRating: null
             },
@@ -319,7 +315,6 @@
                 name: "MARCELO MIRACLES LEATHER PUFFER JACKET",
                 image: "https://i.pinimg.com/736x/81/0b/f8/810bf885c60478086783f6109bdc1d31.jpg",
                 description: "MARCELO MIRACLES LEATHER PUFFER JACKET",
-                rating: null,
                 userRated: false,
                 userRating: null
             },
@@ -328,7 +323,6 @@
                 name: "HOODIE IP BLACK AND WHITE SSAIRWEB",
                 image: "https://i.pinimg.com/736x/40/7b/18/407b186fde8fb2651839c5df0721bf06.jpg",
                 description: "HOODIE IP BLACK AND WHITE SSAIRWEB",
-                rating: null,
                 userRated: false,
                 userRating: null
             },
@@ -337,7 +331,6 @@
                 name: "CHINGATE KNITTED ITEMS",
                 image: "https://i.pinimg.com/736x/3b/c3/48/3bc348ceec323daaa680c32f8a08cc59.jpg",
                 description: "CHINGATE KNITTED ITEMS",
-                rating: null,
                 userRated: false,
                 userRating: null
             },
@@ -346,7 +339,6 @@
                 name: "Kanye x Гоша «Vultures»",
                 image: "https://i.pinimg.com/736x/a5/74/bd/a574bd9f36c78523aa4916bf6a61f445.jpg",
                 description: "Kanye x Гоша «Vultures»",
-                rating: null,
                 userRated: false,
                 userRating: null
             }
@@ -369,14 +361,10 @@
          */
         function displayProducts() {
             catalog.innerHTML = '';
+            // Загружаем информацию об оцененных товарах из localStorage один раз
+            const userRatedProducts = JSON.parse(localStorage.getItem('userRatedProducts')) || {};
             products.forEach(product => {
-                // Генерируем случайный рейтинг от 39 до 49, если еще не сгенерирован
-                if (product.rating === null) {
-                    product.rating = Math.floor(Math.random() * 11) + 39; // Рейтинг от 39 до 49
-                }
-
                 // Проверяем, оценил ли пользователь товар и загружаем его оценку
-                const userRatedProducts = JSON.parse(localStorage.getItem('userRatedProducts')) || {};
                 if (userRatedProducts[product.id]) {
                     product.userRated = true;
                     product.userRating = userRatedProducts[product.id];
@@ -388,7 +376,7 @@
                     <img src="${product.image}" alt="${product.name}">
                     <div class="item-info">
                         <div class="item-name">${product.name}</div>
-                        <div class="item-rating">Оценка: ${product.rating}/50</div>
+                        <div class="item-rating">Оценка: ${product.userRated ? product.userRating + '/50' : '—/50'}</div>
                     </div>
                 `;
                 item.addEventListener('click', () => {
@@ -509,6 +497,9 @@
             userRatedProducts[currentProduct.id] = totalScore;
             localStorage.setItem('userRatedProducts', JSON.stringify(userRatedProducts));
 
+            // Обновляем отображение на главной странице
+            updateProductInCatalog(currentProduct.id, totalScore);
+
             showUserRating();
             showFireworks();
         }
@@ -518,6 +509,19 @@
          */
         function showUserRating() {
             ratingSection.innerHTML = `<h3>Спасибо за вашу оценку!</h3><p>Ваша оценка товара: ${currentProduct.userRating}/50</p>`;
+        }
+
+        /**
+         * Функция для обновления товара в каталоге после оценки
+         */
+        function updateProductInCatalog(productId, userRating) {
+            const productItems = document.querySelectorAll('.item');
+            productItems.forEach(item => {
+                const itemName = item.querySelector('.item-name').textContent;
+                if (itemName === currentProduct.name) {
+                    item.querySelector('.item-rating').textContent = `Оценка: ${userRating}/50`;
+                }
+            });
         }
 
         /**
