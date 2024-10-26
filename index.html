@@ -276,15 +276,14 @@
         // Инициализация Telegram Web App
         const tg = window.Telegram.WebApp;
 
-        // Данные товаров (20 товаров с возможностью добавить фото и описание)
+        // Данные товаров (8 товаров с возможностью добавить фото и описание)
         const products = [
             {
                 id: "product_1",
                 name: "Канье x Гоша «Вестник трибун»",
                 image: "https://i.pinimg.com/736x/1e/6b/81/1e6b81a1c13a17b6d9cfabb9d84890d6.jpg",
                 description: "Канье x Гоша «Вестник трибун»",
-                totalScore: 0,
-                voteCount: 0,
+                rating: null, // Рейтинг будет назначен позже
                 userRated: false
             },
             {
@@ -292,8 +291,7 @@
                 name: "Kanye x Гоша «Черные Псы»",
                 image: "https://i.pinimg.com/736x/9c/d9/a4/9cd9a4e0a69e320465e84e02b9524e82.jpg",
                 description: "Kanye x Гоша «Черные Псы»",
-                totalScore: 0,
-                voteCount: 0,
+                rating: null,
                 userRated: false
             },
             {
@@ -301,8 +299,7 @@
                 name: "YUMMS BY MARK RODOVSKY FALL 2024",
                 image: "https://i.pinimg.com/736x/38/df/c0/38dfc0a32af639c78fc597ef84256803.jpg",
                 description: "YUMMS BY MARK RODOVSKY FALL 2024",
-                totalScore: 0,
-                voteCount: 0,
+                rating: null,
                 userRated: false
             },
             {
@@ -310,8 +307,7 @@
                 name: "LA ROUTINE / OCTOBER 02",
                 image: "https://i.pinimg.com/736x/c3/7b/1c/c37b1cfd9b8d0bdc8728a46132630009.jpg",
                 description: "LA ROUTINE / OCTOBER 02",
-                totalScore: 0,
-                voteCount: 0,
+                rating: null,
                 userRated: false
             },
             {
@@ -319,8 +315,7 @@
                 name: "MARCELO MIRACLES LEATHER PUFFER JACKET",
                 image: "https://i.pinimg.com/736x/81/0b/f8/810bf885c60478086783f6109bdc1d31.jpg",
                 description: "MARCELO MIRACLES LEATHER PUFFER JACKET",
-                totalScore: 0,
-                voteCount: 0,
+                rating: null,
                 userRated: false
             },
             {
@@ -328,8 +323,7 @@
                 name: "HOODIE IP BLACK AND WHITE SSAIRWEB",
                 image: "https://i.pinimg.com/736x/40/7b/18/407b186fde8fb2651839c5df0721bf06.jpg",
                 description: "HOODIE IP BLACK AND WHITE SSAIRWEB",
-                totalScore: 0,
-                voteCount: 0,
+                rating: null,
                 userRated: false
             },
             {
@@ -337,8 +331,7 @@
                 name: "CHINGATE KNITTED ITEMS",
                 image: "https://i.pinimg.com/736x/3b/c3/48/3bc348ceec323daaa680c32f8a08cc59.jpg",
                 description: "CHINGATE KNITTED ITEMS",
-                totalScore: 0,
-                voteCount: 0,
+                rating: null,
                 userRated: false
             },
             {
@@ -346,8 +339,7 @@
                 name: "Kanye x Гоша «Vultures»",
                 image: "https://i.pinimg.com/736x/a5/74/bd/a574bd9f36c78523aa4916bf6a61f445.jpg",
                 description: "Kanye x Гоша «Vultures»",
-                totalScore: 0,
-                voteCount: 0,
+                rating: null,
                 userRated: false
             }
         ];
@@ -370,13 +362,24 @@
         function displayProducts() {
             catalog.innerHTML = '';
             products.forEach(product => {
+                // Генерируем случайный рейтинг от 39 до 49, если еще не сгенерирован
+                if (product.rating === null) {
+                    product.rating = Math.floor(Math.random() * 11) + 39; // Рейтинг от 39 до 49
+                }
+
+                // Проверяем, оценил ли пользователь товар
+                const userRatedProducts = JSON.parse(localStorage.getItem('userRatedProducts')) || [];
+                if (userRatedProducts.includes(product.id)) {
+                    product.userRated = true;
+                }
+
                 const item = document.createElement('div');
                 item.className = 'item';
                 item.innerHTML = `
                     <img src="${product.image}" alt="${product.name}">
                     <div class="item-info">
                         <div class="item-name">${product.name}</div>
-                        <div class="item-rating">Оценка: ${product.voteCount > 0 ? Math.round(product.totalScore / product.voteCount) : '—'}/50</div>
+                        <div class="item-rating">Оценка: ${product.rating}/50</div>
                     </div>
                 `;
                 item.addEventListener('click', () => {
@@ -415,6 +418,7 @@
          */
         function displayRatingForm() {
             ratingSection.innerHTML = `
+                <p>Пожалуйста, оцените товар по следующим критериям:</p>
                 <div class="criterion">
                     <label for="design">Дизайн: <span id="design-value">5</span>/10</label>
                     <input type="range" id="design" min="1" max="10" value="5">
@@ -478,41 +482,23 @@
          * Функция для обработки отправки оценки
          */
         function submitRating() {
-            const designSlider = document.getElementById('design');
-            const uniquenessSlider = document.getElementById('uniqueness');
-            const relevanceSlider = document.getElementById('relevance');
-            const conceptSlider = document.getElementById('concept');
-            const implementationSlider = document.getElementById('implementation');
-
-            const totalScore = parseInt(designSlider.value) + parseInt(uniquenessSlider.value) + parseInt(relevanceSlider.value) + parseInt(conceptSlider.value) + parseInt(implementationSlider.value);
-            currentProduct.totalScore += totalScore;
-            currentProduct.voteCount += 1;
+            // Оценка пользователя не влияет на рейтинг товара
             currentProduct.userRated = true;
-            updateProductRating(currentProduct.id, totalScore);
+
+            // Сохраняем информацию о том, что пользователь оценил товар
+            let userRatedProducts = JSON.parse(localStorage.getItem('userRatedProducts')) || [];
+            userRatedProducts.push(currentProduct.id);
+            localStorage.setItem('userRatedProducts', JSON.stringify(userRatedProducts));
+
             showOverallRating();
             showFireworks();
-        }
-
-        /**
-         * Функция для обновления оценки в каталоге
-         * @param {string} productId - ID товара
-         * @param {number} totalScore - Общий балл
-         */
-        function updateProductRating(productId, totalScore) {
-            const productItems = document.querySelectorAll('.item');
-            productItems.forEach(item => {
-                if (item.querySelector('.item-name').textContent === currentProduct.name) {
-                    item.querySelector('.item-rating').textContent = `Оценка: ${Math.round(currentProduct.totalScore / currentProduct.voteCount)}/50`;
-                }
-            });
         }
 
         /**
          * Функция для отображения общей оценки в модальном окне
          */
         function showOverallRating() {
-            const averageScore = Math.round(currentProduct.totalScore / currentProduct.voteCount);
-            ratingSection.innerHTML = `<h3>Общая оценка: ${averageScore}/50</h3>`;
+            ratingSection.innerHTML = `<h3>Спасибо за вашу оценку!</h3><p>Общая оценка товара: ${currentProduct.rating}/50</p>`;
         }
 
         /**
