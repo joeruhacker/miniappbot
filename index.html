@@ -284,7 +284,8 @@
                 image: "https://i.pinimg.com/736x/1e/6b/81/1e6b81a1c13a17b6d9cfabb9d84890d6.jpg",
                 description: "Канье x Гоша «Вестник трибун»",
                 rating: null, // Рейтинг будет назначен позже
-                userRated: false
+                userRated: false,
+                userRating: null
             },
             {
                 id: "product_2",
@@ -292,7 +293,8 @@
                 image: "https://i.pinimg.com/736x/9c/d9/a4/9cd9a4e0a69e320465e84e02b9524e82.jpg",
                 description: "Kanye x Гоша «Черные Псы»",
                 rating: null,
-                userRated: false
+                userRated: false,
+                userRating: null
             },
             {
                 id: "product_3",
@@ -300,7 +302,8 @@
                 image: "https://i.pinimg.com/736x/38/df/c0/38dfc0a32af639c78fc597ef84256803.jpg",
                 description: "YUMMS BY MARK RODOVSKY FALL 2024",
                 rating: null,
-                userRated: false
+                userRated: false,
+                userRating: null
             },
             {
                 id: "product_4",
@@ -308,7 +311,8 @@
                 image: "https://i.pinimg.com/736x/c3/7b/1c/c37b1cfd9b8d0bdc8728a46132630009.jpg",
                 description: "LA ROUTINE / OCTOBER 02",
                 rating: null,
-                userRated: false
+                userRated: false,
+                userRating: null
             },
             {
                 id: "product_5",
@@ -316,7 +320,8 @@
                 image: "https://i.pinimg.com/736x/81/0b/f8/810bf885c60478086783f6109bdc1d31.jpg",
                 description: "MARCELO MIRACLES LEATHER PUFFER JACKET",
                 rating: null,
-                userRated: false
+                userRated: false,
+                userRating: null
             },
             {
                 id: "product_6",
@@ -324,7 +329,8 @@
                 image: "https://i.pinimg.com/736x/40/7b/18/407b186fde8fb2651839c5df0721bf06.jpg",
                 description: "HOODIE IP BLACK AND WHITE SSAIRWEB",
                 rating: null,
-                userRated: false
+                userRated: false,
+                userRating: null
             },
             {
                 id: "product_7",
@@ -332,7 +338,8 @@
                 image: "https://i.pinimg.com/736x/3b/c3/48/3bc348ceec323daaa680c32f8a08cc59.jpg",
                 description: "CHINGATE KNITTED ITEMS",
                 rating: null,
-                userRated: false
+                userRated: false,
+                userRating: null
             },
             {
                 id: "product_8",
@@ -340,7 +347,8 @@
                 image: "https://i.pinimg.com/736x/a5/74/bd/a574bd9f36c78523aa4916bf6a61f445.jpg",
                 description: "Kanye x Гоша «Vultures»",
                 rating: null,
-                userRated: false
+                userRated: false,
+                userRating: null
             }
         ];
 
@@ -367,10 +375,11 @@
                     product.rating = Math.floor(Math.random() * 11) + 39; // Рейтинг от 39 до 49
                 }
 
-                // Проверяем, оценил ли пользователь товар
-                const userRatedProducts = JSON.parse(localStorage.getItem('userRatedProducts')) || [];
-                if (userRatedProducts.includes(product.id)) {
+                // Проверяем, оценил ли пользователь товар и загружаем его оценку
+                const userRatedProducts = JSON.parse(localStorage.getItem('userRatedProducts')) || {};
+                if (userRatedProducts[product.id]) {
                     product.userRated = true;
+                    product.userRating = userRatedProducts[product.id];
                 }
 
                 const item = document.createElement('div');
@@ -399,7 +408,7 @@
             productImage.src = product.image;
             productDescription.textContent = product.description;
             if (product.userRated) {
-                showOverallRating();
+                showUserRating();
             } else {
                 displayRatingForm();
             }
@@ -482,23 +491,33 @@
          * Функция для обработки отправки оценки
          */
         function submitRating() {
-            // Оценка пользователя не влияет на рейтинг товара
-            currentProduct.userRated = true;
+            // Получаем значения слайдеров
+            const designSlider = document.getElementById('design');
+            const uniquenessSlider = document.getElementById('uniqueness');
+            const relevanceSlider = document.getElementById('relevance');
+            const conceptSlider = document.getElementById('concept');
+            const implementationSlider = document.getElementById('implementation');
 
-            // Сохраняем информацию о том, что пользователь оценил товар
-            let userRatedProducts = JSON.parse(localStorage.getItem('userRatedProducts')) || [];
-            userRatedProducts.push(currentProduct.id);
+            const totalScore = parseInt(designSlider.value) + parseInt(uniquenessSlider.value) + parseInt(relevanceSlider.value) + parseInt(conceptSlider.value) + parseInt(implementationSlider.value);
+
+            // Сохраняем оценку пользователя
+            currentProduct.userRated = true;
+            currentProduct.userRating = totalScore;
+
+            // Сохраняем информацию о том, что пользователь оценил товар и его оценку
+            let userRatedProducts = JSON.parse(localStorage.getItem('userRatedProducts')) || {};
+            userRatedProducts[currentProduct.id] = totalScore;
             localStorage.setItem('userRatedProducts', JSON.stringify(userRatedProducts));
 
-            showOverallRating();
+            showUserRating();
             showFireworks();
         }
 
         /**
-         * Функция для отображения общей оценки в модальном окне
+         * Функция для отображения личной оценки пользователя в модальном окне
          */
-        function showOverallRating() {
-            ratingSection.innerHTML = `<h3>Спасибо за вашу оценку!</h3><p>Общая оценка товара: ${currentProduct.rating}/50</p>`;
+        function showUserRating() {
+            ratingSection.innerHTML = `<h3>Спасибо за вашу оценку!</h3><p>Ваша оценка товара: ${currentProduct.userRating}/50</p>`;
         }
 
         /**
